@@ -34,8 +34,16 @@ package concurrency
 //
 // QUESTION: Why do we return <-chan int instead of chan int?
 func Generate(start, end int) <-chan int {
-	// YOUR CODE HERE
-	return nil
+
+	ch := make(chan int)
+	go func() {
+		defer close(ch)
+		for i := start; i <= end-1; i++ {
+			ch <- i
+		}
+	}()
+
+	return ch
 }
 
 // Square receives integers, squares them, and sends results.
@@ -52,8 +60,15 @@ func Generate(start, end int) <-chan int {
 //
 // QUESTION: What happens if you forget to close the output channel?
 func Square(in <-chan int) <-chan int {
-	// YOUR CODE HERE
-	return nil
+	out := make(chan int)
+
+	go func() {
+		defer close(out)
+		for v := range in {
+			out <- v * v
+		}
+	}()
+	return out
 }
 
 // Sum receives integers and returns their sum.
@@ -67,7 +82,11 @@ func Square(in <-chan int) <-chan int {
 // NOTE: This function blocks until the channel is closed!
 func Sum(in <-chan int) int {
 	// YOUR CODE HERE
-	return 0
+	sum := 0
+	for v := range in {
+		sum += v
+	}
+	return sum
 }
 
 // RunPipeline connects the stages: Generate -> Square -> Sum
